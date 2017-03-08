@@ -1,0 +1,344 @@
+<?php
+
+/**
+ * @file
+ * Tests for ug_event.module.
+ */
+
+/**
+ * Test UG Event
+ */
+class UGEventTestCase extends TaxonomyWebTestCase {
+
+  protected $no_results_text = 'No results found.';
+  protected $more_text = 'More events';
+
+  public static function getInfo() {
+    return array(
+      'name' => 'UG Event',
+      'description' => 'Test the UG Event feature.',
+      'group' => 'UG',
+    );
+  }
+
+  function setUp() {
+    $this->profile = 'ug';
+    parent::setup();
+    theme_enable(array('ug_cornerstone'));
+    theme_disable(array('bartik'));
+    variable_set('theme_default', 'ug_cornerstone');
+  }
+
+  function getListingPages() {
+    return array(
+      'events',
+      'events/week',
+      'events/month',
+      'events/archive',
+    );
+  }
+
+  function testNoResultsBehavior() {
+    /* Assert listing pages show 'no results found.' */
+    foreach ($this->getListingPages() as $path) {
+      $this->drupalGet($path);
+      $this->assertText($this->no_results_text);
+    }
+    /* Assert that 'More events' button is hidden. */
+    $this->drupalGet('');
+    $this->assertNoText($this->more_text);
+  }
+
+  /**
+   * Test event summary is used on listing pages.
+   */
+  function testSummary() {
+    /* Generate some random text. */
+    $later = time() + 3600;
+    $datetime_format = "Y-m-d H:i:s";
+    $date = date($datetime_format, $later);
+    $date2 = date($datetime_format, $later + 7200);
+    $body_text = $this->randomName();
+    $summary_text = $this->randomName();
+    /* Create a node with body and summary. */
+    $settings = array();
+    $settings['type'] = 'event';
+    $settings['field_event_body'][LANGUAGE_NONE][0]['value'] = $body_text;
+    $settings['field_event_body'][LANGUAGE_NONE][0]['summary'] = $summary_text;
+    $settings['field_event_date'][LANGUAGE_NONE][0]['value'] = $date;
+    $settings['field_event_date'][LANGUAGE_NONE][0]['value2'] = $date2;
+    $this->drupalCreateNode($settings);
+    /* Get events listing page. */
+    $this->drupalGet('events');
+    /* Should show summary, not body. */
+    $this->assertText($summary_text);
+    $this->assertNoText($body_text);
+    /* Repeat for month list... */
+    $this->drupalGet('events/month');
+    $this->assertText($summary_text);
+    $this->assertNoText($body_text);
+    /* ... and for week list. */
+    $this->drupalGet('events/week');
+    $this->assertText($summary_text);
+    $this->assertNoText($body_text);
+    /* Repeat test with the archive page. */
+    $earlier = time() - 86400; // This time yesterday.
+    $date = date($datetime_format, $earlier);
+    $date2 = date($datetime_format, $earlier + 3600);
+    $settings['field_event_date'][LANGUAGE_NONE][0]['value'] = $date;
+    $settings['field_event_date'][LANGUAGE_NONE][0]['value2'] = $date2;
+    $this->drupalCreateNode($settings);
+    /* Check archive page. */
+    $this->drupalGet('events/archive');
+    $this->assertText($summary_text);
+    $this->assertNoText($body_text);
+  }
+
+   /**
+   * Test "Events" filter behaviour
+   */
+  function testEventsCategory() {
+
+    /* Generate some random text. */
+    $later = time() + 36000;
+    $datetime_format = "Y-m-d H:i:s";
+    $date = date($datetime_format, $later);
+    $date2 = date($datetime_format, $later + 7200);
+    $body_text = $this->randomName();
+
+    /* Create categories and keywords for events */
+    $eventcats = taxonomy_vocabulary_machine_name_load('event_category');
+    $term1 = $this->createTerm($eventcats);
+    $term2 = $this->createTerm($eventcats);
+
+    /* Create 2 events */
+    $settings = array();
+    $settings['type'] = 'event';
+    $settings['field_event_body'][LANGUAGE_NONE][0]['value'] = $body_text;
+    $settings['field_event_date'][LANGUAGE_NONE][0]['value'] = $date;
+    $settings['field_event_date'][LANGUAGE_NONE][0]['value2'] = $date2;
+
+    $settings['field_event_category'][LANGUAGE_NONE][0]['tid'] = $term1->tid;
+    $node1 = $this->drupalCreateNode($settings);
+
+    $settings['field_event_category'][LANGUAGE_NONE][0]['tid'] = $term2->tid;
+    $node2 = $this->drupalCreateNode($settings);
+   
+    /* Get feed. */
+    $this->drupalGet('events');
+
+    /* Test page title. */
+    $this->assertText("Upcoming Events");
+
+    /* There should be both titles*/
+    $this->assertText($node1->title);
+    $this->assertText($node2->title);
+
+    $this->drupalGet('events/'. $term1->tid);
+    /* There should be one title */
+    $this->assertText($node1->title);
+    $this->assertNoText($node2->title);
+
+    $this->drupalGet('events/'. $term2->tid);
+    /* There should be one title */
+    $this->assertText($node2->title);
+    $this->assertNoText($node1->title);
+
+    /* Test feed icon title */
+    $view_content = views_embed_view('e3', 'panel_pane_1', $term1->tid);
+    $this->verbose($view_content);
+    $alttext = "alt=\"Subscribe to $term1->name\"";
+    $status = strpos($view_content, $alttext);
+    $this->assert(!!$status, "$alttext found");
+  }
+
+  /**
+   * Test more link includes category ID.
+   */
+  function testMoreLink() {
+    /* Create categories and terms */
+    $event_category = taxonomy_vocabulary_machine_name_load('event_category');
+    $term = $this->createTerm($event_category);
+
+    /* Create a date in the future */
+    $later = time() + 3600;
+    $datetime_format = "Y-m-d H:i:s";
+    $date = date($datetime_format, $later);
+    $date2 = date($datetime_format, $later + 7200);
+
+    /* Create nodes */
+    for ($i = 0; $i < 100; $i++) {
+      $settings = array('type' => 'event');
+      $settings['field_event_category'][LANGUAGE_NONE][0]['tid'] = $term->tid;
+      $settings['field_event_date'][LANGUAGE_NONE][0]['value'] = $date;
+      $settings['field_event_date'][LANGUAGE_NONE][0]['value2'] = $date2;
+      $node = $this->drupalCreateNode($settings);
+    }
+
+    $view_content = views_embed_view('e3', 'panel_pane_1', $term->tid);
+    $this->verbose($view_content);
+    $status = strpos($view_content, "events/$term->tid");
+    $this->assert(!!$status, "\"events/$term->tid\" found");
+  }
+
+  /**
+   * Test URL aliases.
+   */
+  function testUrlAlias() {
+    /* Create a date in the future */
+    $later = time() + 3600;
+    $datetime_format = "Y-m-d H:i:s";
+    $date = date($datetime_format, $later);
+    $date2 = date($datetime_format, $later + 7200);
+    /* Create node */
+    $settings = array('type' => 'event');
+    $settings['field_event_date'][LANGUAGE_NONE][0]['value'] = $date;
+    $settings['field_event_date'][LANGUAGE_NONE][0]['value2'] = $date2;
+    $node = $this->drupalCreateNode($settings);
+    /* Get node. */
+    $this->drupalGet('node/' . $node->nid);
+    /* Test banner URL. */
+    $expected_path = 'events/' . date("Y/m", $later) . '/' . strtolower($node->title);
+    $this->assertUrl($expected_path);
+  }
+
+  /**
+
+   * Test E5 - Browse events by date shows as a dropdown
+   */
+  function testBrowseEvents() {
+    /* Create a date in the past */
+    $later = time() - 60 * 60 * 24 * 28 * 2;
+    $datetime_format = "Y-m-d H:i:s";
+    $date = date($datetime_format, $later);
+    $date2 = date($datetime_format, $later - 60 * 60 * 24 * 28 * 8);
+
+    /* Create nodes */
+    for ($i = 0; $i < 100; $i++) {
+      $settings = array('type' => 'event');
+      $settings['field_event_date'][LANGUAGE_NONE][0]['value'] = $date;
+      $settings['field_event_date'][LANGUAGE_NONE][0]['value2'] = $date2;
+      $node = $this->drupalCreateNode($settings);
+    }
+
+    $this->drupalGet('events/');
+    /*$this->assertPattern('|[Ss]elect [Mm]onth|', 'Drop down is on the current page.');*/
+    $this->assertRaw/*('>Go</button>', 'The Events Archive uses a dropdown menu');*/('<select class="ctools-jump-menu-select form-control form-select" id="edit-jump" name="jump">', 'The Events Archive uses a dropdown menu');
+  }
+  
+  /*
+   * Test correct header nesting
+   */
+  function testHeaderNesting() {
+    // Create categories and terms
+    $event_category = taxonomy_vocabulary_machine_name_load('event_category');
+    $term = $this->createTerm($event_category);
+
+    /* Create a date in the future */
+    $later = time() + 3600;
+    $datetime_format = "Y-m-d H:i:s";
+    $date = date($datetime_format, $later);
+    $date2 = date($datetime_format, $later + 7200);
+
+    // Create node
+    $settings = array('type' => 'event', 'title' => 'Test Event');
+    $settings['field_event_category'][LANGUAGE_NONE][0]['tid'] = $term->tid;
+    $settings['field_event_date'][LANGUAGE_NONE][0]['value'] = $date;
+    $settings['field_event_date'][LANGUAGE_NONE][0]['value2'] = $date2;
+    $node = $this->drupalCreateNode($settings);
+
+    $this->drupalGet('events/');
+    $this->assertNoRaw('<h2 class="pane-title">');
+    $this->assertRaw('<h2 class="media-heading">');
+
+    $this->drupalGet('events/'.$term->tid);
+    $this->assertRaw('<h2 class="pane-title">');
+    $this->assertRaw('<h3 class="media-heading">');
+  }
+  
+  /*
+   * Test events that straddle current date still appear in the correct locations
+   */
+  function testLongEvents() {
+    $datetime_format = "Y-m-d H:i:s";
+    
+    $nodes = array();
+    $dates = array();
+    
+    $dates[] = array( // Case 1 - Event starts and ends in past
+      date($datetime_format, time() - (2*24*60*60)), // Two days ago
+      date($datetime_format, time() - (24*60*60)) // One day ago
+    );
+    $dates[] = array( // Case 2 - Event starts and ends in future
+      date($datetime_format, time() + (24*60*60)), // One day ahead
+      date($datetime_format, time() + (2*24*60*60)) // Two days ahead
+    );
+    $dates[] = array( // Case 3 - Event starts yesterday and ends tomorrow
+      date($datetime_format, time() - (24*60*60)), // One day ago
+      date($datetime_format, time() + (24*60*60)) // One day ahead
+    );
+    $dates[] = array( // Case 4 - Event starts in -8 days and ends in +8 days
+      date($datetime_format, time() - (8*24*60*60)), // Eight days ago
+      date($datetime_format, time() + (8*24*60*60)) // Eight days ahead
+    );
+    $dates[] = array( // Case 5 - Event starts in past and ends today
+      date($datetime_format, time() - (24*60*60)), // One day ago
+      date($datetime_format, time()) // Today
+    );
+    $dates[] = array( // Case 6 - Event starts today and ends in future
+      date($datetime_format, time()), // Today
+      date($datetime_format, time() + (24*60*60)) // One day ahead
+    );
+    $dates[] = array( // Case 7 - Event starts today and ends today
+      date($datetime_format, time()), // Today
+      date($datetime_format, time()) // Today
+    );
+    $dates[] = array( // Case 8 - Events starts -32 days and ends +32 days
+      date($datetime_format, time() - (32*24*60*60)), // Thirty-two days ago
+      date($datetime_format, time() + (32*24*60*60)) // Thirty-two days ahead
+    );
+    
+    $i = 1;
+    foreach($dates as $date) {
+      $settings = array('type' => 'event', 'title' => 'Case '.$i);
+      $settings['field_event_date'][LANGUAGE_NONE][0]['value'] = $date[0];
+      $settings['field_event_date'][LANGUAGE_NONE][0]['value2'] = $date[1];
+      $nodes[] = $this->drupalCreateNode($settings);
+      $i++;
+    }
+    
+    // Upcoming
+    $this->drupalGet('events');
+    $this->assertTrue("Testing upcoming events.");
+    $upcoming = array();
+    for($i = 2; $i <= 8; $i++) {
+      $upcoming[] = $this->assertText("Case $i");
+    }
+    
+    
+    // This Week
+    $this->drupalGet('events/week');
+    $this->assertTrue("Testing this week's events.");
+    $week = array();
+    for($i = 2; $i <= 8; $i++) {
+      $week[] = $this->assertText("Case $i");
+    }
+    
+    // Monthly Calendar
+    $this->drupalGet('events/month');
+    $this->assertTrue("Testing this month's events.");
+    $month = array();
+    for($i = 2; $i <= 8; $i++) {
+      $month[] = $this->assertText("Case $i");
+    }
+    
+    // Past Events
+    $this->drupalGet('events/archive');
+    $this->assertText("Case 1", "Case 1 passed."); // Case 1
+    
+    for($i = 0; $i < 7; $i++) {
+      if($upcoming[$i] && $week[$i] && $month[$i]) $this->assertTrue("Case ".($i+2)." passed.");
+    }
+  }
+}
+

@@ -1,0 +1,49 @@
+name = UG Theme
+description = A Bootstrap Sub-theme.
+core = 7.x
+version = 7.x-14.1
+base theme = bootstrap
+
+
+;;;;;;;;;;;;;;;;;;;;;
+;; Regions
+;;;;;;;;;;;;;;;;;;;;;
+
+regions[navigation]     = 'Navigation'
+regions[header]         = 'Top Bar'
+regions[highlighted]    = 'Highlighted'
+regions[help]           = 'Help'
+regions[content]        = 'Content'
+regions[sidebar_first]  = 'Primary'
+regions[sidebar_second] = 'Secondary'
+regions[footer]         = 'Footer'
+regions[page_top]       = 'Page top'
+regions[page_bottom]    = 'Page bottom'
+
+
+;;;;;;;;;;;;;;;;;;;;;
+;; Stylesheets
+;;;;;;;;;;;;;;;;;;;;;
+
+stylesheets[all][] = dist/css/bootstrap.min.css
+stylesheets[all][] = css/overrides.css
+stylesheets[all][] = css/base.css
+stylesheets[all][] = css/header.css
+stylesheets[all][] = css/media.css
+stylesheets[all][] = css/layout.css
+stylesheets[all][] = css/features.css
+
+;;;;;;;;;;;;;;;;;;;;;
+;; Scripts
+;;;;;;;;;;;;;;;;;;;;;
+
+scripts[] = 'dist/js/bootstrap.min.js'
+; scripts[] = 'js/ug_scripts.js'
+
+;;;;;;;;;;;;;;;;;;;;;
+;; Bootstrap CDN
+;;;;;;;;;;;;;;;;;;;;;
+
+; Disable BootstrapCDN if using Bootstrap source files in your sub-theme.
+settings[bootstrap_cdn] = ''
+

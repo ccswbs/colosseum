@@ -1,0 +1,118 @@
+<?php
+
+/**
+ * @file
+ * Tests for ug_page.module.
+ */
+
+/**
+ * Test UG Page feature.
+ */
+class UGPageTestCase extends TaxonomyWebTestCase {
+
+  protected $no_results_text = 'No results found.';
+
+  public static function getInfo() {
+    return array(
+      'name' => 'UG Page',
+      'description' => 'Test the UG Page feature.',
+      'group' => 'UG',
+    );
+  }
+
+  function setUp() {
+    $this->profile = 'ug';
+    parent::setup('ug_page', 'ug_page_layouts');
+    /* Allow creation of Drupal accounts. */
+    $ldap_conf = variable_get('ldap_authentication_conf');
+    $ldap_conf['authenticationMode'] = 1;
+    variable_set('ldap_authentication_conf', $ldap_conf);
+    $web_user = $this->drupalCreateUser(array('create page content', 'edit any page content'));
+    $this->drupalLogin($web_user);
+  }
+
+  /**
+   * Test "Page" feeds filter behaviour
+   */
+  function testPageFeeds() {
+    /* Create categories and keywords for pages */
+    $pagecats = taxonomy_vocabulary_machine_name_load('page_category');
+    $term1 = $this->createTerm($pagecats);
+    $term2 = $this->createTerm($pagecats);
+
+    /* Create 2 pages */
+    $settings = array('type' => 'page', 'promote' => 1);
+    $settings['field_page_category'][LANGUAGE_NONE][0]['tid'] = $term1->tid;
+    $node1 = $this->drupalCreateNode($settings);
+    $settings['field_page_category'][LANGUAGE_NONE][0]['tid'] = $term2->tid;
+    $node2 = $this->drupalCreateNode($settings);
+   
+    /* Get feed. */
+    $this->drupalGet('pages/all/feed');
+
+    /* Test page title. */
+    $this->assertText("Pages related to all");
+
+    /* There should be both titles*/
+    $this->assertText($node1->title);
+    $this->assertText($node2->title);
+
+    $this->drupalGet('pages/'. $term1->tid . '/feed');
+    /* There should be one title */
+    $this->assertText($node1->title);
+    $this->assertNoText($node2->title);
+
+    $this->drupalGet('pages/'. $term2->tid . '/feed');
+    /* There should be one title */
+    $this->assertText($node2->title);
+    $this->assertNoText($node1->title);
+  }
+
+  function getListingPages() {
+    return array(
+      'pages',
+    );
+  }
+
+  function testNoResultsBehavior() {
+    /* Assert listing pages show 'no results found.' */
+    foreach ($this->getListingPages() as $path) {
+      $this->drupalGet($path);
+      $this->assertText($this->no_results_text);
+    }
+  }
+
+  /**
+   * Tests validation of file description.
+   */
+  function testFileDescriptionRequired() {
+    $type_name = 'page';
+    $field_name = 'field_page_attachments';
+    $file = current($this->drupalGetTestFiles('text', NULL));
+    $file->filesize = filesize($file->uri);
+    $settings = array('type' => $type_name);
+    $node = $this->drupalCreateNode($settings);
+    $nid = $node->nid;
+    $edit['files[field_page_attachments_und_0]'] = drupal_realpath($file->uri);
+    $this->drupalPost("node/$nid/edit", $edit, t('Save'));
+    $edit = array($field_name . '[und][0][description]' => '     ');
+    $this->drupalPost("node/$nid/edit", $edit, t('Save'));
+    $this->assertText(t('File attachments description is required.'));
+  }
+
+  /**
+   * Test "Page" aliases
+   */
+  function testPageAlias() {
+    /* Create a page */
+    $settings = array('type' => 'page');
+    $node1 = $this->drupalCreateNode($settings);
+    /* Get page. */
+    $this->drupalGet('node/' . $node1->nid);
+    /* Test page URL. */
+    $expected_path = strtolower($node1->title);
+    $this->assertUrl($expected_path);
+  }
+
+}
+

@@ -1,0 +1,391 @@
+/***********************************
+*
+*  AODA Web Remediation Feature Styles
+*
+************************************/
+
+
+/*************************
+BR - Banner
+*************************/
+
+    /*--- Layout ---*/
+
+    #slides {
+        position: relative;
+    }
+
+    .slidesjs-container {
+        z-index:10;
+    }
+
+    /*--- Theming ---*/
+
+    #slides {
+        background: #000000;
+        display: none; /* prevent slides from flashing */
+    }
+
+    /*---------------------
+    Pause/Play Button
+    ---------------------**/
+
+        /*--- Layout ---*/
+
+        .slidesjs-navigation-top{
+            padding: 5px;
+        }
+
+        /* Medium + Large Screens - pause/play button displayed over slides */
+        @media all and (min-width:768px) {
+            .slidesjs-navigation-top {
+                margin: 0 auto;
+                padding: 0;
+                position: absolute;
+                top: 8px;
+                width:100%;
+                z-index:15;
+            }
+        }
+
+        @media all and (min-width:992px) {
+            .slidesjs-psply {
+                width: 80px !important;
+            }
+        }
+
+        /*--- Theming ---*/
+
+        .slidesjs-navigation-top .slidesjs-psply {
+            background: #000000;
+            color: #FFFFFF;
+            opacity: .85;
+            /*border: 1px solid #666666;*/
+        }
+
+        .slidesjs-navigation-top button.slidesjs-psply:focus,
+        .slidesjs-navigation-top button.slidesjs-psply:hover {
+            background: #222222;
+        }
+
+        @media all and (min-width:768px) {
+            .slidesjs-navigation-top .slidesjs-psply {
+                border: 0;
+            }
+        }
+
+    /*---------------------
+    Slide Navigation Buttons
+    ---------------------**/
+
+        .slidesjs-navigation-bottom button.slidesjs-previous:focus,
+        .slidesjs-navigation-bottom button.slidesjs-previous:hover,
+        .slidesjs-navigation-bottom button.slidesjs-next:focus,
+        .slidesjs-navigation-bottom button.slidesjs-next:hover {
+            background: #222222;
+        }
+
+        .slidesjs-navigation-bottom .slidesjs-next,
+        .slidesjs-navigation-bottom .slidesjs-previous {
+            background: #000000;
+            color: #FFFFFF;
+            /*border: 1px solid #666666;*/
+        }
+
+    /*---------------------
+    Pagination (Slide # of #)
+    ---------------------**/
+
+        .slidesjs-pagination {
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        @media all and (min-width:768px) {
+            .slidesjs-pagination .btn-block {
+                font-size: .857em;
+            }
+        }
+
+        @media all and (min-width:992px) {
+            .slidesjs-pagination .btn-block {
+                font-size: 1em;
+            }
+        }
+
+    /*---------------------
+    Headline (Title)
+    ---------------------**/
+
+        /*--- Theming ---*/
+
+        .row.slidesjs-navigation-bottom a.slidesjs-slide-title {
+            font-weight: 500;
+            font-size: 1.214em; /* 17px */
+            text-decoration: none;
+        }
+
+        .row.slidesjs-navigation-bottom a.slidesjs-slide-title:focus,
+        .row.slidesjs-navigation-bottom a.slidesjs-slide-title:hover{
+            text-decoration: underline;
+        }
+
+        .row.slidesjs-navigation-bottom .slidesjs-slide-link {
+            color: #428BCA;
+        }
+
+        @media all and (min-width:992px) {
+            .row.slidesjs-navigation-bottom .slidesjs-slide-title {
+                font-size: 1.429em; /* 20px */
+            }
+        }
+
+    /*---------------------
+    Overlay (Summary Text)
+    ---------------------**/
+
+        /*--- Layout ---*/
+
+        .slidesjs-slide-text {
+            margin-bottom: 0 !important;
+        }
+
+        /* Default for Mobile - overlay below slides */
+        .row.slidesjs-navigation-bottom {
+            margin-left:0;
+            padding: 10px 0;
+            width:100%;
+            z-index:12;
+        }
+
+        /* Default - padding adjusted for stacked rows (summary above controls) */
+        .row.slidesjs-navigation-bottom .slidesjs-summary {
+            min-height: 40px;
+            padding-bottom: 10px;
+        }
+
+        /* Small Screens */
+        @media all and (min-width:768px) {
+
+            /* padding adjusted for single row (summary beside controls) */
+            .row.slidesjs-navigation-bottom .slidesjs-summary {
+                padding-bottom: 0;
+            }
+        }
+        
+        /* Medium + Larger Screens */
+        @media all and (min-width:992px) {
+
+            /* [DISABLED OVERLAY] - Medium + Large Screens - option to have overlay displayed over slides */
+            /*.row.slidesjs-navigation-bottom {
+                bottom:0;
+                position: absolute;
+            }*/
+            
+        }
+
+        /*--- Theming ---*/
+
+        .row.slidesjs-navigation-bottom {
+            background: rgb(0,0,0);
+            background: rgba(0,0,0,0.85);
+            color: #FFFFFF;
+        }
+
+/*************************
+E - Events Grid/List View
+*************************/
+
+    /*---------------------
+    Previous/Next Buttons
+    ---------------------**/
+
+    /*--- Theming ---*/
+
+    .view .date-nav-wrapper .date-prev,
+    .view .date-nav-wrapper .date-next {
+        background: none;
+    }
+
+    .view .date-nav-wrapper .date-prev a,
+    .view .date-nav-wrapper .date-next a {
+        border-bottom: #DDDDDD 1px solid;
+        border-radius: 5px;
+        color: #2F70A9;
+        font-size: 14px;
+        font-weight: normal;
+        text-align: center;
+    }
+
+    .view .date-nav-wrapper .date-heading{
+        text-align: left;
+    }
+
+    /*--- Layout ---*/
+
+    .view .date-nav-wrapper .date-prev a,
+    .view .date-nav-wrapper .date-next a {
+        margin: 0;
+        width: 100%;
+    }
+
+    .view .date-nav-wrapper .date-prev,
+    .view .date-nav-wrapper .date-next {
+        float:left;
+        position: relative;
+        max-width: 90px;
+    }
+
+    .view .date-nav-wrapper .date-prev{
+        left: 0;
+        margin-right: 5px;
+        right: auto;
+    }
+
+    /*---------------------------------
+    Previous/Next Buttons - Wrappers
+    ----------------------------------**/
+
+    .view .date-nav-wrapper .date-nav {
+        margin-left: 0;
+    }
+
+    .view .date-nav-wrapper .pager-wrapper .row {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .view .date-nav-wrapper .pager {
+        margin-top: 0;
+        padding-right: 0;
+    }
+
+    /*---------------------------------
+    Date Heading
+    ----------------------------------**/
+
+    .view .date-nav-wrapper .date-heading{
+        padding-left: 0;
+    }
+
+
+    @media all and (min-width: 768px){
+
+        /* Shift pager to the right on Wide views */
+        .view .date-nav-wrapper .pager-wrapper{
+            padding-right: 0;
+        }
+        
+        .view .date-nav-wrapper .pager-wrapper .row {
+            float:right;
+        }
+
+        /* Reinforce Bootstrap Grid - Date Heading */
+        .view .date-nav-wrapper .date-heading.col-sm-10 { width: 83.33333333333334%;}
+        .view .date-nav-wrapper .date-heading.col-sm-9 { width: 75%;}
+        .view .date-nav-wrapper .date-heading.col-sm-8 { width: 66.66666666666666%; }
+
+        /* Reinforce Bootstrap Grid - Buttons */
+        .view .date-nav-wrapper .date-prev.col-xs-6,
+        .view .date-nav-wrapper .date-next.col-xs-6,
+        .view .date-nav-wrapper .date-prev.col-sm-6,
+        .view .date-nav-wrapper .date-next.col-sm-6 {width: 50%;}
+        .view .date-nav-wrapper .pager.col-sm-offset-1 { margin-left: 8.333333333333332%;}
+    }
+
+/******************************************
+PP - People profiles
+******************************************/
+
+/*-----------------------------------------------
+  Remove margin and border from field_collections
+  -----------------------------------------------*/
+.field-collection-view {
+  margin: 0;
+  border: none;
+}
+.field-collection-container {
+  border: none;
+}
+/*------------------------------------------------
+  Center images on faces grid.
+  ------------------------------------------------*/
+.view-pp1b figure {
+  margin: 8px;
+}
+.view-pp1b figure img {
+  margin: 0 auto;
+}
+.view-pp1b h2 {
+  font-size: 1.2em;
+}
+
+/*-----------------------------------------------
+  140 Faces-style grid view
+  -----------------------------------------------*/
+
+figure.face-figure {
+    position: relative;
+    z-index: 0;
+    float: left !important;
+    margin: 0 !important;
+    overflow: hidden;
+    padding: 0;
+    height: 142px;
+    width: 142px;
+    background-color: #111;
+}
+
+figure.face-figure img {
+    position: relative;
+    z-index: 2;
+    opacity: 1;
+    -webkit-transition: opacity 400ms ease;
+    transition: opacity 400ms ease;
+}
+
+figure.face-figure figcaption.face-caption {
+    position :absolute;
+    z-index: 1;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 142px;
+    color: #fff !important;
+    background-color: transparent;
+    text-align: left !important;
+    margin: 0;
+    -webkit-transition: z-index 400ms;
+    transition: z-index 400ms;
+}
+
+figure.face-figure a:hover img,
+figure.face-figure a:focus img {
+    opacity: 0.33;
+}
+figure.face-figure a:hover figcaption.face-caption,
+figure.face-figure a:focus figcaption.face-caption {
+    z-index: 3;
+}
+
+.views-exposed-widgets {
+    margin-bottom: 2em;
+}
+
+#block-system-main > div figure.face-figure figcaption.face-caption h2 {
+    font-weight: bold;
+    font-size: 18px !important;
+    color: #fff !important;
+    margin: 0;
+    padding: 5px;
+    position: absolute;
+    top: 0;
+}
+
+#block-system-main > div figure.face-figure figcaption.face-caption p {
+    margin: 0;
+    padding: 5px;
+    position: absolute;
+    bottom: 0;
+}

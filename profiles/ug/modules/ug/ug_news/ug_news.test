@@ -1,0 +1,111 @@
+<?php
+
+/**
+ * @file
+ * Tests for ug_news.module.
+ */
+
+/**
+ * Test UG News feature.
+ */
+class UGNewsTestCase extends TaxonomyWebTestCase {
+
+  protected $no_results_text = 'No results found.';
+  protected $more_text = 'More news';
+
+  public static function getInfo() {
+    return array(
+      'name' => 'UG News',
+      'description' => 'Test the UG News feature.',
+      'group' => 'UG',
+    );
+  }
+
+  function setUp() {
+    $this->profile = 'ug';
+    parent::setup('ug_news', 'ug_news_layouts');
+    /* Allow creation of Drupal accounts. */
+    $ldap_conf = variable_get('ldap_authentication_conf');
+    $ldap_conf['authenticationMode'] = 1;
+    variable_set('ldap_authentication_conf', $ldap_conf);
+    $web_user = $this->drupalCreateUser(array('create news content'));
+    $this->drupalLogin($web_user);
+  }
+
+  /**
+   * Test "More news" link behaviour.
+   */
+  function testMoreLink() {
+    /* Create 4 news articles. */
+    $node1 = $this->drupalCreateNode(array('type' => 'news', 'promote' => 1));
+    $node2 = $this->drupalCreateNode(array('type' => 'news', 'promote' => 1));
+    $node3 = $this->drupalCreateNode(array('type' => 'news', 'promote' => 0));
+    $node4 = $this->drupalCreateNode(array('type' => 'news', 'promote' => 0));
+    /* Get home page. */
+    $this->drupalGet('');
+    /* There should be no "More news" button (yet). */
+    $this->assertNoText('More news');
+    /* Create 4 more news articles. */
+    $node5 = $this->drupalCreateNode(array('type' => 'news', 'promote' => 1));
+    $node6 = $this->drupalCreateNode(array('type' => 'news', 'promote' => 1));
+    $node7 = $this->drupalCreateNode(array('type' => 'news', 'promote' => 0));
+    $node8 = $this->drupalCreateNode(array('type' => 'news', 'promote' => 0));
+    /* Refresh home page. */
+    $this->drupalGet('');
+    /* Should see "More news" button now. */
+    $this->assertText('More news');
+  }
+
+  function getListingPages() {
+    return array(
+      'news',
+      'news/1',
+      'news/archive/201604',
+    );
+  }
+
+  function testNoResultsBehavior() {
+    /* Assert listing pages show 'no results found.' */
+    foreach ($this->getListingPages() as $path) {
+      $this->drupalGet($path);
+      $this->assertText($this->no_results_text);
+    }
+    /* Assert that 'More features' button is hidden. */
+    $this->drupalGet('');
+    $this->assertNoText($this->more_text);
+  }
+
+  /**
+   * Test URL aliases.
+   */
+  function testUrlAlias() {
+    /* Create node */
+    $settings = array('type' => 'news');
+    $node = $this->drupalCreateNode($settings);
+    /* Get node. */
+    $this->drupalGet('node/' . $node->nid);
+    /* Test URL path. */
+    $expected_path = 'news/' . date("Y/m", time()) . '/' . strtolower($node->title);
+    $this->assertUrl($expected_path);
+  }
+
+  /**
+   * Test alt text on feed link.
+   */
+  function testFeed() {
+    /* Create category term */
+    $category = taxonomy_vocabulary_machine_name_load('news_category');
+    $term = $this->createTerm($category);
+    /* Create node */
+    $settings = array('type' => 'news');
+    $settings['field_news_tags'][LANGUAGE_NONE][0]['tid'] = $term->tid;
+    $node = $this->drupalCreateNode($settings);
+    /* Assert feed icon alt text contains category name */
+    $view_content = views_embed_view('n3', 'panel_pane_1', $term->tid);
+    $this->verbose($view_content);
+    $alttext = "alt=\"Subscribe to $term->name\"";
+    $status = strpos($view_content, $alttext);
+    $this->assert(!!$status, "$alttext found");
+  }
+}
+
